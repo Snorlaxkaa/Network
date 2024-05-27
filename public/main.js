@@ -7,11 +7,13 @@
   var socket = io();
   var canvas = document.getElementsByClassName('whiteboard')[0];
   var colors = document.getElementsByClassName('color');
+  var textBlock = document.getElementById('textblock');
   var context = canvas.getContext('2d');
 
 
   var current = {
-    color: 'black'
+    color: 'black',
+    textPositionY: 100,
   };
   var drawing = false;
 
@@ -33,7 +35,11 @@
   }
 
 
-  socket.on('drawing', onDrawingEvent);
+  textBlock.addEventListener('click', onTextUpdate, false);
+
+
+  socket.on('drawing', onDrawingEvent);  
+  socket.on('message', onMessageEvent);
 
 
   window.addEventListener('resize', onResize, false);
@@ -94,6 +100,15 @@
   }
 
 
+  function onTextUpdate(e){
+    let msg = prompt("Please enter your message", "");
+   
+    if (msg != null || msg != "") {
+        socket.emit('message', msg);
+    }
+  }
+
+
   // limit the number of events per second
   function throttle(callback, delay) {
     var previousCall = new Date().getTime();
@@ -113,6 +128,14 @@
     var w = canvas.width;
     var h = canvas.height;
     drawLine(data.x0 * w, data.y0 * h, data.x1 * w, data.y1 * h, data.color);
+  }
+
+
+  function onMessageEvent(data){
+    //alert(data);
+    context.font="16px Georgia";    
+    context.fillText(data,30,current.textPositionY);
+    current.textPositionY=current.textPositionY+20;
   }
 
 
